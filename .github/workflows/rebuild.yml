@@ -17,7 +17,13 @@ jobs:
       - name: Configure
         run: cmake -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release
       - name: Build
-        run: cmake --build build --config Release --parallel 4
+        shell: pwsh
+        run: |
+          cmake --build build --config Release --parallel 4 2>&1 | Tee-Object -FilePath build.log
+          if ($LASTEXITCODE -ne 0) {
+            Select-String -Path build.log -Pattern 'error' | Select-Object -First 40 | ForEach-Object { Write-Output "::error::$($_.Line.Trim())" }
+            exit 1
+          }
       - name: Pack
         working-directory: build
         run: cmake -P ${{ github.workspace }}/scripts/pack.cmake
