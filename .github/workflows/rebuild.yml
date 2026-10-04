@@ -36,7 +36,7 @@ jobs:
         run: |
           $env:CXXFLAGS = "/FI`"$env:GITHUB_WORKSPACE\ci_forced_includes.h`""
           $env:CFLAGS = $env:CXXFLAGS
-          cmake -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release
+          cmake -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release -Dgearmulator_BUILD_FX_PLUGIN=ON
       - name: Build
         shell: pwsh
         run: |
