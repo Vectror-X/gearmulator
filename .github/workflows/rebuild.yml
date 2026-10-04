@@ -14,7 +14,12 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
+      # 2024 code on a 2025 compiler: newer MSVC standard headers no longer pull in <chrono> and
+      # friends by accident, so a few of the sources that relied on that fail. Force-including the
+      # standard headers fixes it without touching a line of the emulator's source.
       - name: Configure
+        env:
+          CXXFLAGS: /FIchrono /FIcstdint /FIcstring /FIalgorithm /FIfunctional /FIarray /FIstdexcept
         run: cmake -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release
       - name: Build
         shell: pwsh
