@@ -15,12 +15,28 @@ jobs:
         with:
           submodules: recursive
       # 2024 code on a 2025 compiler: newer MSVC standard headers no longer pull in <chrono> and
-      # friends by accident, so a few of the sources that relied on that fail. Force-including the
-      # standard headers fixes it without touching a line of the emulator's source.
+      # friends by accident, so a few of the sources that relied on that fail. A force-included
+      # header (C++ only, so the C sources are untouched) fixes it without editing the emulator.
+      - name: Forced includes
+        shell: pwsh
+        run: |
+          @"
+          #ifdef __cplusplus
+          #include <chrono>
+          #include <cstdint>
+          #include <cstring>
+          #include <algorithm>
+          #include <functional>
+          #include <array>
+          #include <stdexcept>
+          #endif
+          "@ | Set-Content -Path "$env:GITHUB_WORKSPACE\ci_forced_includes.h"
       - name: Configure
-        env:
-          CXXFLAGS: /FIchrono /FIcstdint /FIcstring /FIalgorithm /FIfunctional /FIarray /FIstdexcept
-        run: cmake -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release
+        shell: pwsh
+        run: |
+          $env:CXXFLAGS = "/FI`"$env:GITHUB_WORKSPACE\ci_forced_includes.h`""
+          $env:CFLAGS = $env:CXXFLAGS
+          cmake -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release
       - name: Build
         shell: pwsh
         run: |
